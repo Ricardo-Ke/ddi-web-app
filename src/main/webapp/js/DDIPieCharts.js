@@ -1,6 +1,6 @@
-//var web_service_url = 'http://wwwdev.ebi.ac.uk/Tools/omicsdi/ws/';
+var web_service_url = 'http://wwwdev.ebi.ac.uk/Tools/omicsdi/ws/';
 
-var web_service_url = 'http://localhost:9091/';
+// var web_service_url = 'http://localhost:9091/';
 var retry_limit_time = 50;
 
 
@@ -363,7 +363,7 @@ var pie_charts_repos_omics = function () {
              * prepare the treemap data
              */
             var proteomics_list = "pride,peptideatlas,peptide_atlas,massive,PRIDE,PeptideAtlas,MassIVE";
-            var metabolomics_list = "MetaboLights Dataset,MetaboLights,metabolights,metabolights_dataset,MetabolomicsWorkbench, Metabolomics Workbench, Metabolome Workbench, GNPS, MetabolomeExpress, GPMdb";
+            var metabolomics_list = "MetaboLights Dataset,MetaboLights,metabolights,metabolights_dataset,MetabolomicsWorkbench, Metabolomics Workbench, Metabolome Workbench";
             var genomics_list = "ega,EGA";
             var transcriptomics_list = "ArrayExpress, arrayexpress-repository";
 
@@ -380,11 +380,6 @@ var pie_charts_repos_omics = function () {
                     },
                     {
                         "name": "Metabolomics",
-                        "size": null,
-                        "children": []
-                    },
-                    {
-                        "name": "Transcriptomics",
                         "size": null,
                         "children": []
                     }
@@ -417,14 +412,8 @@ var pie_charts_repos_omics = function () {
                     });
                     continue;
                 }
-                if (transcriptomics_list.indexOf(repos[i].name) > -1) {
-                    repos_data[3].children.push({
-                        name: repos[i].name,
-                        size: repos[i].value
-                    });
-                    continue;
-                }
             }
+
             for (var i = 0; i < repos_data.length; i++) {
 
                 var total = 0;
@@ -458,6 +447,7 @@ var pie_charts_repos_omics = function () {
 
             var tool_tip, svg;
 
+            //draw to init or reload
             function drawLineGraphy (data_now) {
 
               body.attr("position", "relative");
@@ -473,10 +463,10 @@ var pie_charts_repos_omics = function () {
 
               var svg_height = parseInt(body.style("height")) - 60;
               var rect_height = (parseInt(svg_height - 20*2 - 8*2))/3;     //(body - gap * 2 - paddingTopAndBotton)/3
-              var rect_width = 20;
-              var lower = d3.scale.linear().domain([0,1000]).range([rect_height*3 + 28,rect_height*2 + 28]).clamp(true),
-                  upper = d3.scale.linear().domain([1001,5000]).range([rect_height*2 + 18,rect_height + 18]).clamp(true),
-                  most  = d3.scale.linear().domain([5001, 70000]).range([rect_height + 8, 8]).clamp(true),
+              var rect_width = 25;
+              var lower = d3.scale.linear().domain([0,1000]).range([rect_height*3 + 48,rect_height*2 + 48]).clamp(true),
+                  upper = d3.scale.linear().domain([1500,5000]).range([rect_height*2 + 28,rect_height + 28]).clamp(true),
+                  most  = d3.scale.linear().domain([10000, 70000]).range([rect_height + 8, 8]).clamp(true),
                   color = d3.scale.category10();
 
               if (!svg) {
@@ -491,10 +481,10 @@ var pie_charts_repos_omics = function () {
                  .data(data_now).enter()
                  .append("rect")
                  .attr("class", "lower")
-                 .attr("x", function(d, i) { return 70 + i * 30; })
+                 .attr("x", function(d, i) { return 70 + i * 35; })
                  .attr("width", rect_width)
                  .attr("y", function(d) { return lower(d); })
-                 .attr("height", function(d) { return rect_height * 3 + 28 - lower(d); })
+                 .attr("height", function(d) { return rect_height * 3 + 48 - lower(d); })
                  .style("fill", color);
 
               svg.selectAll("rect.upper")
@@ -502,17 +492,17 @@ var pie_charts_repos_omics = function () {
                  .enter()
                  .append("rect")
                  .attr("class", "upper")
-                 .attr("x", function(d, i) { return 70 + i * 30; })
+                 .attr("x", function(d, i) { return 70 + i * 35; })
                  .attr("width", rect_width)
                  .attr("y", function(d) { return upper(d); })
-                 .attr("height", function(d) { return d >= 1500 ? rect_height * 2 + 18 - upper(d) : 0; })
+                 .attr("height", function(d) { return d >= 1500 ? rect_height * 2 + 28 - upper(d) : 0; })
                  .style("fill", color);
 
               svg.selectAll("rect.most")
                  .data(data_now).enter()
                  .append("rect")
                  .attr("class", "most")
-                 .attr("x", function(d, i) {return 70 + i * 30;})
+                 .attr("x", function(d, i) {return 70 + i * 35;})
                  .attr("width", rect_width)
                  .attr("y", function(d) {return most(d);})
                  .attr("height", function(d) {return d >= 10000 ? rect_height + 8 - most(d): 0})
@@ -531,6 +521,7 @@ var pie_charts_repos_omics = function () {
 
             //mouse over tips
             function showTip(searchWord_pre, data_add_key) {
+
                 body.selectAll("rect")
                   .on("mouseover", function(d, i) {
                       i = i % data_add_key.length;
@@ -541,29 +532,28 @@ var pie_charts_repos_omics = function () {
                               .duration(200)
                               .style("opacity", .9);
 
-
-                      tool_tip.html(data_add_key[i].name.toString() + ": <br>" + data_add_key[i].size.toString() + " datasets"  )
+                      tool_tip.html(data_add_key[i].size.toString() + " datasets")
                               .style("left", (mouse_coords[0]) + "px")
-                              .style("top",  (parseInt(d3.select(this).attr("y") - 30)) + "px")
-                              .style("height", "40px")
-                              .style("width", (data_add_key[i].name.toString().length + 10) * 6 + "px");
+                              .style("top",  (parseInt(d3.select(this).attr("y"))) + "px")
+                              .style("height", "20px")
+                              .style("width", (data_add_key[i].size.toString().length + 10) * 8 + "px");
                   })
                   .on("mouseout", function () {
                       tool_tip.transition()
                               .duration(500)
                               .style('opacity', '0');
                   })
-                  .on("click", function(d, i) {
+                  .on("click", function(d) {
                       tool_tip.transition()
                               .duration(500)
                               .style("opacity", 0);
 
-                      searchWord = searchWord_pre + data_add_key[i].name.toString() + '"';
-                      if (data_add_key[i].name.toString() == "MetaboLights Dataset")
-                           searchWord = searchWord_pre + "MetaboLights" + '"';
-                      if (data_add_key[i].name.toString() == "Metabolome Workbench")
-                           searchWord = searchWord_pre + "MetabolomicsWorkbench" + '"';
-                        angular.element(document.getElementById('queryCtrl')).scope().meta_search(searchWord);
+                      location.href = searchWord_pre + d.name + '""';
+                      if (d.name == "MetaboLights Dataset")
+                           location.href = searchWord_pre + "MetaboLights" + '"';
+                      if (d.name == "Metabolome Workbench")
+                           location.href = searchWord_pre + "MetabolomicsWorkbench" + '"';
+
                   })
             }
 
@@ -571,7 +561,7 @@ var pie_charts_repos_omics = function () {
             showTip('*:* AND repository:"', repos_data_simple);
 
 
-//add form container
+            //add form container
             var formdiv = body.append('div');
             formdiv
                 .attr("class", "center")
@@ -623,6 +613,7 @@ var pie_charts_repos_omics = function () {
 
         }
 
+        //click event
         function change() {
             var value = this.value || 'Repos';
             var d;
@@ -688,23 +679,29 @@ var barcharts_years_omics_types = function () {
         }
         else {
             remove_getting_info('barchart_omicstype_annual');
-            var body = d3.select('#barchart_omicstype_annual');
-        var div_width_px = body.style("width");
-        var div_width = parseInt(div_width_px.substr(0, div_width_px.length - 2));
-        var most_access_div_height_px = d3.select('#most_accessed_datasets').style('height');
-        var div_height = parseInt(most_access_div_height_px.substr(0, most_access_div_height_px.length - 2));
 
             //prepare graph data
         var body = d3.select('#barchart_omicstype_annual');
         var div_width = parseInt(body.style("width"));
         var div_height= parseInt(d3.select('#most_accessed_datasets').style('height'));
         var height_offset = 50;
-            //var div_width = 420;
             var margin = {top: 20, right: 20, bottom: 20, left: 60},
                 width = div_width - margin.left - margin.right,
                 height = div_height*3.05 - margin.top - margin.bottom;
 
-            var x0 = d3.time.scale().range([0, width - 30]);
+
+            body.attr("position", "relative");
+
+            var tool_tip = null;
+            if (!tool_tip) {
+              tool_tip = body.append("div")
+                             .attr("id", "bar_chart_tooltip")
+                             .attr("class", "chart_tooltip")
+                             .style("opacity", 0)
+                             .attr("position", "absolute");
+            }
+
+            var x0 = d3.scale.linear().range([0, width - 30]);
 
             var y0 = d3.scale.linear().range([height - height_offset, 0]);
             var y1 = d3.scale.linear().range([height - height_offset, 0]);
@@ -729,7 +726,6 @@ var barcharts_years_omics_types = function () {
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
             //prepare data
             var omics_types = d3.keys(annual_data[0]).filter(function (key) {
                 return key !== "year";
@@ -740,7 +736,9 @@ var barcharts_years_omics_types = function () {
             var genomics_list = [],
                 metabolo_list = [],
                 proteomi_list = [],
-                transcri_list = [];
+                transcri_list = [],
+                allYearData   = [];
+
             data.forEach(function (d) {
                 d.omics = omics_types.map(function (name) {
                     if (name !== "year") return {name: name, value: +d[name], year: d["year"]};
@@ -749,29 +747,30 @@ var barcharts_years_omics_types = function () {
                 //calculate the log value
                 for(var i = 0; i<d.omics.length; i++){
                     var currOmic = d.omics[i];
+                    var currYear = currOmic.year;
 
                     switch (currOmic.name) {
                       case "genomics":
                           genomics_list.push({
-                            year: +currOmic.year,
+                            year: currYear,
                             value: +currOmic.value
                           })
                         break;
                       case "transcriptomics":
                           transcri_list.push({
-                            year: +currOmic.year,
+                            year: currYear,
                             value: +currOmic.value
                           })
                         break;
                       case "metabolomics":
                           metabolo_list.push({
-                            year: +currOmic.year,
+                            year: currYear,
                             value: +currOmic.value
                           })
                         break;
                       case "proteomics":
                           proteomi_list.push({
-                            year: +currOmic.year,
+                            year: currYear,
                             value: +currOmic.value
                           })
                         break;
@@ -780,9 +779,20 @@ var barcharts_years_omics_types = function () {
                 }
             });
 
-//            genomics_list.forEach(function (d) {
-//              console.log(d.year + " " + d.value);
-//            })
+            function prepareAllDate(priData, nameString) {
+              for(var i = 0;i < priData.length;i++) {
+                allYearData.push({
+                  name: nameString,
+                  year: priData[i].year,
+                  value: priData[i].value
+                })
+              }
+            }
+
+            prepareAllDate(genomics_list, "genomics");
+            prepareAllDate(transcri_list, "transcriptomics");
+            prepareAllDate(metabolo_list, "metabolomics");
+            prepareAllDate(proteomi_list, "proteomics");
 
             x0.domain(d3.extent(data, function (d) {
               return d.year;
@@ -837,6 +847,58 @@ var barcharts_years_omics_types = function () {
             svg.selectAll("path")
                .style('stroke-width', '2')
                .style('fill', 'none');
+
+            svg.selectAll("circle")
+               .data(allYearData)
+               .enter()
+               .append("circle")
+               .attr("cx", function(d, i) {
+                 return x0(d.year);
+               })
+               .attr("cy", function(d) {
+                 if (d.name == "genomics" || d.name == "transcriptomics") {
+                   return y0(d.value);
+                 }else if(d.name == "metabolomics" || d.name == "proteomics"){
+                    return y1(d.value);
+                 }
+               })
+               .attr("fill", function(d) {
+                 if (d.name == "genomics" || d.name == "transcriptomics") {
+                   return "steelblue";
+                 }else if(d.name == "metabolomics" || d.name == "proteomics"){
+                    return "red";
+                 }
+               });
+
+
+            svg.selectAll("circle")
+              .attr("r", 4)
+              .style("cursor", "pointer")
+              .on("mouseover", function(d,i){
+                   var mouse_coords = d3.mouse(document.getElementById("bar_chart_tooltip").parentElement);
+                   tool_tip.transition()
+                           .duration(200)
+                           .style("opacity", .9);
+
+                   tool_tip.html(d.value.toString() + " datasets")
+                           .style("left", (mouse_coords[0] + "px"))
+                           .style("top", (parseInt(d3.select(this).attr("cy")) + "px"))
+                           .style("height", "20px")
+                           .style("width", ((d.year.toString().length + 10) * 8 + "px"));
+              })
+              .on("mouseout", function(){
+                   tool_tip.transition()
+                          .duration(500)
+                          .style("opacity", 0);
+              })
+              .on("click", function(d) {
+                  tool_tip.transition()
+                         .duration(500)
+                         .style("opacity", 0);
+
+                 var searchWord = "*:* AND omics_type:\"" + getName(d.year, d.value) + "\" AND publication_date:\"" + d.year + "\"";
+                 angular.element(document.getElementById('queryCtrl')).scope().meta_search(searchWord);
+              });
 
             svg.append("g")            // Add the X Axis
                 .attr("class", "x axis")
@@ -899,13 +961,22 @@ var barcharts_years_omics_types = function () {
                 .text(function (d) {
                     return d;
                 });
+
+            function getName(year, value) {
+                for(var i = 0;i < data.length;i++) {
+                   for(var j = 0;j < data[i].omics.length;j++) {
+                      if(data[i].omics[j].year == year && data[i].omics[j].value == value) {
+                        return data[i].omics[j].name;
+                      }
+                   }
+                }
+            }
+
+            function drawCircle(data, color) {
+
+            }
         }
     }
-
-    function clickMe(d) {
-        var searchWord = "*:* AND publication_date:\"" + d + "\"";
-        angular.element(document.getElementById('queryCtrl')).scope().meta_search(searchWord);
-    };
 }
 
 function output_error_info(errordiv) {
